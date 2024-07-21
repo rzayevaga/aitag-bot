@@ -1,0 +1,17 @@
+services:
+- type: web
+  name: aitagbot
+  runtime: docker
+  repo: https://github.com/rzayevaga/aitagbot
+  plan: free
+  envVars:
+  - key: BOT-TOKEN
+    sync: false
+  - key: API_ID
+    sync: false
+  - key: API_HASH
+    sync: false
+  region: frankfurt
+  dockerContext: .
+  dockerfilePath: ./Dockerfile
+version: "1"
