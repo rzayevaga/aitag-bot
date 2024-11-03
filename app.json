@@ -1,12 +1,10 @@
 {
     "name": "aiTag - bot",
     "description": "Powerful Telegram bot to get everyone's attention by mentioning all members in the chat. AiTag bot has some additional cool features and also it can work in channels. It's easy, fast and self deployable.",
-    "repository": "https://github.com/rzayevaga/aitagbot",
-    "logo": "https://www.rzayev.iblogger.org/data/files/aitagbot.png",
+    "repository": "https://github.com/rzayevaga/aitag-bot",
+    "logo": "",
     "keywords": [
         "Ai-Tag bot",
-        "mention all bot",
-        "notify all bot",
         "tag all bot",
         "everyone bot",
         "Telegram bot",
