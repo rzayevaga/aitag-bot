@@ -1,8 +1,8 @@
 services:
 - type: web
-  name: aitagbot
+  name: aitag-bot
   runtime: docker
-  repo: https://github.com/rzayevaga/aitagbot
+  repo: https://github.com/rzayevaga/aitag-bot
   plan: free
   envVars:
   - key: BOT-TOKEN
