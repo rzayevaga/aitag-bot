@@ -119,7 +119,7 @@ async def emrler(_, query: CallbackQuery):
 
 @rzayev.on_callback_query(filters.regex("gstart"))
 async def gstart(_, query: CallbackQuery):
-    await query.edit_message_text(f"""**Salam {message.from_user.mention} ⚕\nMən Telegram Tag Bot!\n
+    await query.edit_message_text(f"""**Salam {query.from_user.mention} ⚕\nMən Telegram Tag Bot!\n
 ⎋  **Sizin yerinizə İstifadəçiləri spamsız Tağ edə bilərəm.**
 
 ⎋  **Əmrləri görmək üçünn “📚 Əmrlər“ butonuna basın.**""",
