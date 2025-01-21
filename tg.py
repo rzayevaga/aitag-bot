@@ -164,6 +164,45 @@ def handle_message(client, message):
             data[user] = []
         data[user].append(text)
 
+# /start əmri
+@rzayeff.on_message(filters.command("start") & filters.private)
+async def start_command(client, message):
+    keyboard = [
+        [InlineKeyboardButton("➕ Söz Əlavə Et ➕", callback_data="add_word_menu")],
+        [InlineKeyboardButton("ℹ️ Bot Haqqında Məlumat", url="https://t.me/aitbots")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    welcome_message = (
+        "Salam! Mən süni intellektə əsaslanan bir botam və qrupda və şəxsi söhbətlərdə sizin üçün "
+        "faydalı funksiyalar təqdim edirəm. Mənim vasitəmlə:\n\n"
+        "1️⃣ Qrupda istifadəçilərin bir-birinə verdiyi cavabları öyrənib yadda saxlaya bilərəm.\n"
+        "2️⃣ Öz sözlərinizi əlavə edib, onları mənə öyrədə bilərsiniz.\n"
+        "3️⃣ Qrup adminləri xoş gəldin mesajlarını təyin edə bilər.\n\n"
+        "4️⃣ Qrup söhbətində userləri tağ etmə funksiyasına malikəm.\n\n"
+        "Daha çox məlumat üçün aşağıdakı düymələrdən istifadə edin."
+    )
+    await message.reply_text(welcome_message, reply_markup=reply_markup)
+
+# "Söz Əlavə Et" düyməsinə toxunulduqda inline menyunu göstəririk
+@rzayeff.on_callback_query(filters.regex("add_word_menu"))
+async def add_word_menu(client, callback_query):
+    keyboard = [
+        [InlineKeyboardButton("➕ Öz Sözünü Əlavə Et ➕", callback_data="add_word")],
+        [InlineKeyboardButton("Sənin Əlavə etdiyin sözlər", callback_data="my_words")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await callback_query.message.reply(
+        "Bu menyu vasitəsilə öz sözlərinizi əlavə edə və ya əlavə etdiyiniz sözləri görə bilərsiniz:",
+        reply_markup=reply_markup
+    )
+    await callback_query.answer()
+
+
+
+
+
+
 
 # JSON faylını oxumaq və yazmaq üçün funksiyalar
 def load_data():
