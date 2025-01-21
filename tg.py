@@ -1,3 +1,18 @@
+import asyncio
+import random
+from pyrogram import Client, filters
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from bp import *
+
+# Botun məlumatları
+API_ID = 123456  # Telegram API ID
+API_HASH = "1782HsjaJaak9"  # Telegram API Hash
+BOT_TOKEN = "123456789:HsyauiHsjəkə"  # Bot Token
+
+# Bot müştərisi
+rzayeff = Client("tag_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+
+# Gözəl sözlər, şeir parçaları və musiqi mətnləri, motivasiya sözləri, qəzəllər.
 beautiful_phrases = [
     "Səni bir gün görməsəm, günəş mənə doğmur, ay mənə gülmür. 🌟",
     "Ürəyimdəki sözləri yazmağa qələmim belə cəsarət etmir.",
@@ -1001,30 +1016,6 @@ beautiful_phrases = [
     "Sənin baxışların mənə yeni bir dünya açır. ☀️",
 ]
 
-
-
-
-import asyncio
-import random
-from pyrogram import Client, filters
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
-
-# Botun məlumatları
-API_ID = 123456  # Telegram API ID
-API_HASH = "your_api_hash"  # Telegram API Hash
-BOT_TOKEN = "your_bot_token"  # Bot Token
-
-# Bot müştərisi
-rzayeff = Client("tag_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
-
-# Gözəl sözlər, şeir parçaları və musiqi mətnləri
-beautiful_phrases = [
-    "Sən bu qrupun qəlbisin! ❤️",
-    "Sənin enerjin bu qrupa həyat verir! 🌟",
-    "Səninlə dost olmaq bir şərəfdir! 🙌",
-    "Sən bu qrupun ən parlaq günəşisən! ☀️",
-    "Hər anın xoşbəxtliklə dolsun! 🌸"
-]
 
 # Tağ etmə prosesinin dayandırılması üçün flag
 tagging_in_progress = False
