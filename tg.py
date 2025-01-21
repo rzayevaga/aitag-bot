@@ -164,6 +164,76 @@ def handle_message(client, message):
             data[user] = []
         data[user].append(text)
 
+
+# JSON faylını oxumaq və yazmaq üçün funksiyalar
+def load_data():
+    try:
+        with open("data.json", "r") as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return {"welcome_messages": {}, "user_words": {}}  # Əgər fayl yoxdursa, başlanğıc dəyəri
+
+def save_data(data):
+    with open("data.json", "w") as file:
+        json.dump(data, file, indent=4)
+
+# Welcome mesajı
+@rzayeff.on_message(filters.new_chat_members)
+async def welcome(client, message):
+    chat_id = message.chat.id
+    data = load_data()  # Data faylını yükləyirik
+    for member in message.new_chat_members:
+        # Xoş gəldin mesajını JSON-dan alırıq
+        welcome_text = data["welcome_messages"].get(str(chat_id), "Xoş gəldiniz!")
+        await message.reply_text(f"{welcome_text}, {member.mention}!")
+
+# Welcome mesajını təyin et
+@rzayeff.on_message(filters.command("setwelcome") & filters.group)
+async def set_welcome(client, message):
+    # Qrup admini olub-olmadığını yoxlayaq
+    if not message.from_user.id in [admin.user.id for admin in await message.chat.get_members(filters="administrator")]:
+        await message.reply_text("Bu əmri yalnız qrup adminləri icra edə bilər!")
+        return
+
+    if len(message.command) < 2:
+        await message.reply_text("Xahiş edirəm, yeni Xoş Gəldin mesajını daxil edin.")
+        return
+    chat_id = message.chat.id
+    welcome_text = " ".join(message.command[1:])
+    
+    # Data faylını yükləyirik və yeni mesajı saxlayırıq
+    data = load_data()
+    data["welcome_messages"][str(chat_id)] = welcome_text
+    save_data(data)
+    
+    await message.reply_text("Qarşılama mesajı uğurla təyin edildi!")
+
+# Qrup daxilində edilən söhbətləri toplayırıq və istifadəçi tərəfindən əlavə edilən sözləri saxlayırıq
+@rzayeff.on_message(filters.text)
+def handle_message(client, message):
+    data = load_data()
+
+    # Qrupda edilən söhbətləri toplayırıq
+    if message.chat.type == "supergroup":
+        user = message.from_user.username or message.from_user.first_name
+        text = message.text
+        
+        # İstifadəçi tərəfindən verilən cavabları və sözləri qeyd edirik
+        if message.reply_to_message:
+            replied_text = message.reply_to_message.text
+            if replied_text:
+                if replied_text not in data["user_words"]:
+                    data["user_words"][replied_text] = []
+                data["user_words"][replied_text].append(text)
+        else:
+            if text not in data["user_words"]:
+                data["user_words"][text] = []
+        
+        # İstifadəçi tərəfindən əlavə edilən sözləri saxlayırıq
+        if user not in data["user_words"]:
+            data["user_words"][user] = []
+        data["user_words"][user].append(text)
+
     save_data(data)
 
 # İstifadəçilərin öz sözlərini əlavə etməsi üçün komanda
@@ -174,9 +244,9 @@ def add_word(client, message):
     # Komanda strukturu /addsoz <söz> - <tərcümə>
     if len(message.text.split()) > 2:
         word, translation = message.text.split(" ", 2)[1], message.text.split(" ", 2)[2]
-        if word not in data:
-            data[word] = []
-        data[word].append(translation)
+        if word not in data["user_words"]:
+            data["user_words"][word] = []
+        data["user_words"][word].append(translation)
         save_data(data)
         message.reply(f"'{word}' sözü əlavə edildi!")
     else:
@@ -187,8 +257,8 @@ def add_word(client, message):
 def list_words(client, message):
     data = load_data()
     user = message.from_user.username or message.from_user.first_name
-    if user in data:
-        words = "\n".join([f"{word}: {', '.join(translations)}" for word, translations in data[user].items()])
+    if user in data["user_words"]:
+        words = "\n".join([f"{word}: {', '.join(translations)}" for word, translations in data["user_words"][user].items()])
         message.reply(f"Sənin əlavə etdiyin sözlər:\n{words}")
     else:
         message.reply("Heç bir söz əlavə etməmisiniz.")
@@ -204,10 +274,10 @@ def delete_word(client, message):
         user = message.from_user.username or message.from_user.first_name
         
         # Yalnız istifadəçinin öz əlavə etdiyi sözləri silmək
-        if user in data and word in data[user]:
-            del data[user][word]  # İstifadəçinin sözünü silirik
-            if not data[user]:  # İstifadəçi artıq heç bir söz əlavə etməyibsə, onu silirik
-                del data[user]
+        if user in data["user_words"] and word in data["user_words"][user]:
+            del data["user_words"][user][word]  # İstifadəçinin sözünü silirik
+            if not data["user_words"][user]:  # İstifadəçi artıq heç bir söz əlavə etməyibsə, onu silirik
+                del data["user_words"][user]
             save_data(data)
             message.reply(f"'{word}' sözü silindi!")
         else:
@@ -222,8 +292,8 @@ def auto_reply(client, message):
     text = message.text
 
     # Bot, istifadəçinin yazdığı sözə cavab verir
-    if text in data:
-        reply = data[text]
+    if text in data["user_words"]:
+        reply = data["user_words"][text]
         if reply:
             # Bu zaman "Bu sözə cavab" mesajı olmadan, sadəcə cavabı göndəririk
             message.reply(f"{', '.join(reply)}")
@@ -250,12 +320,11 @@ def on_my_words_button_click(client, callback_query):
     user = callback_query.from_user.username or callback_query.from_user.first_name
     callback_query.answer()
 
-    if user in data:
-        words = "\n".join([f"{word}: {', '.join(translations)}" for word, translations in data[user].items()])
+    if user in data["user_words"]:
+        words = "\n".join([f"{word}: {', '.join(translations)}" for word, translations in data["user_words"][user].items()])
         callback_query.message.reply(f"Sənin əlavə etdiyin sözlər:\n{words}")
     else:
         callback_query.message.reply("Heç bir söz əlavə etməmisiniz.")
-
 
 
 # Botu işə salırıq
