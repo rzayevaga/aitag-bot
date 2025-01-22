@@ -9,7 +9,8 @@ from asyncio import gather
 import random
 from pyrogram.enums import ChatMemberStatus, ChatType
 from pyrogram.errors import FloodWait
-
+from bp import beautiful_phrases
+from sd import sual_db
 
 
 rzayev=Client(
@@ -96,6 +97,9 @@ async def ttag(client, message):
         await message.reply(f"✅ Tağ tamamlandı! Cəmi {i} istifadəçi tağ edildi.")
     except Exception as e:
         await message.reply(f"Xəta: {str(e)}")
+
+
+
 
 
 
@@ -218,6 +222,63 @@ async def stag(client, message):
             await message.reply("👮🏻 | Üzr istəyirik, **yalnız adminlər** bu əmri yerinə yetirə bilər.")
     except FloodWait as e:
         await asyncio.sleep(e.value)
+
+@rzayev.on_message(filters.command(["tag"], prefixes=["/", "!", "%", ",", ".", "@", "#"]))
+async def tag(rzayev, message):
+    global stopProcess
+    try:
+        # Admin icazəsi yoxlanışı
+        try:
+            sender = await rzayev.get_chat_member(message.chat.id, message.from_user.id)
+            has_permissions = sender.privileges
+        except:
+            has_permissions = message.sender_chat
+
+        if has_permissions:
+            # Maksimum proses limiti
+            if len(chatQueue) > 30:
+                await message.reply("⛔️ | Hazırda maksimum 30 söhbətim üzərində işləyirəm. Lütfən, tezliklə yenidən cəhd edin.")
+            else:
+                if message.chat.id in chatQueue:
+                    await message.reply("🚫 | Bu çatda artıq davam edən proses var. Yenisini başlamaq üçün zəhmət olmasa /stop əmrini işlədin.")
+                else:
+                    chatQueue.append(message.chat.id)
+                    
+                    membersList = []
+                    async for member in rzayev.get_chat_members(message.chat.id):
+                        if member.user.is_bot or member.user.is_deleted:
+                            continue
+                        membersList.append(member.user)
+
+                    i = 0
+                    lenMembersList = len(membersList)
+                    if stopProcess:
+                        stopProcess = False
+
+                    while membersList and not stopProcess:
+                        user = membersList.pop(0)
+                        random_question = random.choice(sual_dp)
+                        text = f"{random_question}\n\n{user.mention}"
+                        try:
+                            await rzayev.send_message(message.chat.id, text)
+                        except FloodWait as e:
+                            await asyncio.sleep(e.value)
+                        except Exception:
+                            pass
+                        await asyncio.sleep(3)  # 3 saniyəlik interval
+                        i += 1
+
+                    if i == lenMembersList:
+                        await message.reply(f"✅ | Tağ tamamlandı. **Ümumi tağ edilən istifadəçilər: {i}**.")
+                    else:
+                        await message.reply(f"✅ | Tağ dayandırıldı. **Ümumi tağ edilən istifadəçilər: {i}**.")
+                    chatQueue.remove(message.chat.id)
+        else:
+            await message.reply("👮🏻 | Üzr istəyirik, **yalnız adminlər** bu əmri yerinə yetirə bilər.")
+    except FloodWait as e:
+        await asyncio.sleep(e.value)
+
+
 
 
 
