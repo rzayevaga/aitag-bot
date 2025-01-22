@@ -71,14 +71,29 @@ async def main_menu(client, callback_query):
 
 # Təkli tağ sistemi
 @rzayev.on_message(filters.command("ttag", prefixes=["/", ".", "!"]))
-async def ttag(client, message):
-    global stopProcess
+async def ttag(rzayev, message):
+    global stopProcess, isProcessing
+
+    # Aktiv proses yoxlaması
+    if isProcessing:
+        await message.reply("⚠️ Hal-hazırda başqa bir tağ prosesi davam edir. Zəhmət olmasa, bir az gözləyin.")
+        return
+
+    # Admin yoxlaması
+    chat_member = await rzayev.get_chat_member(message.chat.id, message.from_user.id)
+    if chat_member.status not in ["administrator", "creator"]:
+        await message.reply("❌ Bu əmri yalnız adminlər istifadə edə bilər.")
+        return
+
     try:
+        # Mesajın yoxlanması
         if len(message.command) < 2:
             await message.reply("Xahiş olunur, tağ üçün mesaj əlavə edin.")
             return
 
+        # Giriş mətnini götürmək
         input_text = message.command[1]
+
         members = []
         async for member in rzayev.get_chat_members(message.chat.id):
             if not member.user.is_bot and not member.user.is_deleted:
@@ -90,18 +105,28 @@ async def ttag(client, message):
             return
 
         i = 0
+        stopProcess = False
+        isProcessing = True
         while members and not stopProcess:
             user = members.pop(0)
-            await rzayev.send_message(message.chat.id, f"{input_text}\n{user.mention}")
-            i += 1
-            await asyncio.sleep(3)
-        await message.reply(f"✅ Tağ tamamlandı! Cəmi {i} istifadəçi tağ edildi.")
+            try:
+                await rzayev.send_message(
+                    message.chat.id, f"{input_text}\n{user.mention}"
+                )
+                i += 1
+                await asyncio.sleep(3)  # Gözləmə vaxtı
+            except Exception as e:
+                await message.reply(f"❌ Tağ zamanı xəta: {str(e)}")
+                continue
+
+        if not stopProcess:
+            await message.reply(f"✅ Tağ tamamlandı! Cəmi {i} istifadəçi tağ edildi.")
+        else:
+            await message.reply(f"⏸️ Tağ prosesi dayandırıldı. Cəmi {i} istifadəçi tağ edildi.")
     except Exception as e:
         await message.reply(f"Xəta: {str(e)}")
-
-
-
-
+    finally:
+        isProcessing = False  # Proses tamamlandıqda işarə yenilənir
 
 
 @rzayev.on_message(filters.command(["otag"], prefixes=["/", "!", "%", ",", ".", "@", "#"]))
