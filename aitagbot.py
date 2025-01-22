@@ -6,6 +6,7 @@ import os
 from os import remove
 import asyncio
 from asyncio import gather
+import random
 from pyrogram.enums import ChatMemberStatus, ChatType
 from pyrogram.errors import FloodWait
 
@@ -20,6 +21,81 @@ rzayev=Client(
 
 chatQueue = []
 stopProcess = False
+
+
+ 
+# Start əmri
+@rzayev.on_message(filters.command("start") & filters.private)
+async def start(client, message):
+    buttons = InlineKeyboardMarkup([
+        [InlineKeyboardButton("📜 Əmrlər", callback_data="commands")],
+        [InlineKeyboardButton("🧸 Söhbərt Qrupu", url="https://t.me/")]
+    ])
+    await message.reply_photo(
+        photo="",
+        caption=f"Salam {message.from_user.first_name}!\nMən Nəfəs Tağ Botuyam. Qrup söhbətlərində sizin yerinzə istifadəçiləri tağ edə ( çağıra ) bilərəm. Başqa funksiyalarımda var.",
+        reply_markup=buttons
+    )
+
+# Əmrlər menyusu
+@rzayev.on_callback_query(filters.regex("commands"))
+async def commands_menu(client, callback_query):
+    buttons = InlineKeyboardMarkup([
+        [InlineKeyboardButton("⬅️ Geri", callback_data="main_menu")]
+    ])
+    await callback_query.message.edit_text(
+        "**📚 Əmrlər:**\n\n"
+        "`/stag` - Motivasiya, şeir, qəzəl sözləri ilə tağ.\n"
+        "`/ttag [mesaj]` - Təkli tağ sistemi.\n"
+        "`/stop` - Bütün prosesləri dayandır.\n"
+        "`/admins` - Adminlərin siyahısı.\n"
+        "`/bots` - Botların siyahısı.\n"
+        "`/id` - İstifadəçi və ya çat ID-sini göstərir.\n"
+        "`/remove` - Silinmiş hesabları qrupdan çıxarır.",
+        reply_markup=buttons
+    )
+
+# Geri düyməsi
+@rzayev.on_callback_query(filters.regex("main_menu"))
+async def main_menu(client, callback_query):
+    buttons = InlineKeyboardMarkup([
+        [InlineKeyboardButton("📜 Əmrlər", callback_data="commands")],
+        [InlineKeyboardButton("🧸 Söhbət Qrupu", url="https://t.me/")]
+    ])
+    await callback_query.message.edit_text(
+        "Mən Nəfəs Tağ Botuyam. Qrup söhbətlərində sizin yerinzə istifadəçiləri tağ edə ( çağıra ) bilərəm. Başqa funksiyalarımda var:",
+        reply_markup=buttons
+    )
+
+# Təkli tağ sistemi
+@rzayev.on_message(filters.command("ttag", prefixes=["/", ".", "!"]))
+async def ttag(client, message):
+    global stopProcess
+    try:
+        if len(message.command) < 2:
+            await message.reply("Xahiş olunur, tağ üçün mesaj əlavə edin.")
+            return
+
+        input_text = message.command[1]
+        members = []
+        async for member in rzayev.get_chat_members(message.chat.id):
+            if not member.user.is_bot and not member.user.is_deleted:
+                members.append(member.user)
+
+        total = len(members)
+        if total == 0:
+            await message.reply("Qrupda tağ ediləcək üzv yoxdur.")
+            return
+
+        i = 0
+        while members and not stopProcess:
+            user = members.pop(0)
+            await rzayev.send_message(message.chat.id, f"{input_text}\n{user.mention}")
+            i += 1
+            await asyncio.sleep(3)
+        await message.reply(f"✅ Tağ tamamlandı! Cəmi {i} istifadəçi tağ edildi.")
+    except Exception as e:
+        await message.reply(f"Xəta: {str(e)}")
 
 
 
@@ -88,6 +164,61 @@ async def everyone(client, message):
       await message.reply("👮🏻 | Üzr istəyirik, **yalnız adminlər** bu əmri işlədə bilər.")  
   except FloodWait as e:
     await asyncio.sleep(e.value) 
+
+
+import random
+
+
+@rzayev.on_message(filters.command(["stag"], prefixes=["/", "!", "%", ",", ".", "@", "#"]))
+async def stag(client, message):
+    global stopProcess
+    try:
+        try:
+            sender = await rzayev.get_chat_member(message.chat.id, message.from_user.id)
+            has_permissions = sender.privileges
+        except:
+            has_permissions = message.sender_chat  
+        if has_permissions:
+            if len(chatQueue) > 30:
+                await message.reply("⛔️ | Hazırda maksimum 30 söhbətim üzərində işləyirəm.  Lütfən, tezliklə yenidən cəhd edin.")
+            else:
+                if message.chat.id in chatQueue:
+                    await message.reply("🚫 | Bu çatda artıq davam edən proses var.  Yenisini başlamaq üçün zəhmət olmasa /stop əmrini işlədin.")
+                else:
+                    chatQueue.append(message.chat.id)
+                    if len(message.command) > 1:
+                        inputText = message.command[1]
+                    elif len(message.command) == 1:
+                        inputText = ""    
+                    membersList = []
+                    async for member in rzayev.get_chat_members(message.chat.id):
+                        if member.user.is_bot or member.user.is_deleted:
+                            pass
+                        else:
+                            membersList.append(member.user)
+                    i = 0
+                    lenMembersList = len(membersList)
+                    if stopProcess: stopProcess = False
+                    while len(membersList) > 0 and not stopProcess:
+                        user = membersList.pop(0)
+                        random_phrase = random.choice(beautiful_phrases)
+                        text = f"{inputText}\n{random_phrase}\n\n{user.mention}"
+                        try:
+                            await rzayev.send_message(message.chat.id, text)
+                        except Exception:
+                            pass
+                        await asyncio.sleep(3)  # 3 saniyəlik interval
+                        i += 1
+                    if i == lenMembersList:
+                        await message.reply(f"✅ | Tağ tamamlandı. **Ümumi tağ edilən istifadəçilər: {i}**.")
+                    else:
+                        await message.reply(f"✅ | Tağ dayandırıldı. **Ümumi tağ edilən istifadəçilər: {i}**.")
+                    chatQueue.remove(message.chat.id)
+        else:
+            await message.reply("👮🏻 | Üzr istəyirik, **yalnız adminlər** bu əmri yerinə yetirə bilər.")
+    except FloodWait as e:
+        await asyncio.sleep(e.value)
+
 
 
 @rzayev.on_message(filters.command(["remove","clean", "sil"], prefixes=["/", "!", "%", ",", ".", "@", "#"]))
