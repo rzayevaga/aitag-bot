@@ -20,7 +20,7 @@ rzayev=Client(
 
 chatQueue = []
 stopProcess = False
- 
+
 
 
 @rzayev.on_message(filters.command(["otag"], prefixes=["/", "!", "%", ",", ".", "@", "#"]))
