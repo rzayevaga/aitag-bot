@@ -479,10 +479,129 @@ async def get_id(client, message):
 
 
 
-@rzayev.on_message(filters.left_chat_member)
-async def goodbye(bot,message):
-	chatid= message.chat.id
-	n=await bot.send_message(text=f"Getməyinə üzüldüm,  {message.from_user.mention}, iyi günlər 😔",chat_id=chatid)
+@rzayev.on_message(filters.command("info", prefixes=["/", ".", "!", "%", "#", ",", "@"]))
+async def info(client, message):
+    try:
+        user = message.from_user
+        # İstifadəçi haqqında məlumat
+        user_info = f"**İstifadəçi Məlumatı**\n"
+        user_info += f"👤 **Ad**: {user.first_name} {user.last_name if user.last_name else ''}\n"
+        user_info += f"💬 **İstifadəçi adı**: @{user.username if user.username else 'Yoxdur'}\n"
+        user_info += f"📅 **Qeydiyyat tarixi**: {user.date.strftime('%Y-%m-%d %H:%M:%S')}\n"
+        user_info += f"🆔 **İstifadəçi ID**: {user.id}\n"
+        user_info += f"📸 **Profil şəkli**: {user.photo.file_id if user.photo else 'Yoxdur'}\n"
+
+        # Son görülmə vaxtı
+        last_seen = await client.get_chat_member(message.chat.id, user.id)
+        last_seen_time = last_seen.date if last_seen.date else "Yoxdur"
+        user_info += f"🕒 **Son Görülmə**: {last_seen_time.strftime('%Y-%m-%d %H:%M:%S') if last_seen_time != 'Yoxdur' else 'Yoxdur'}\n"
+
+        # İstifadəçi bio-su
+        user_bio = user.bio if user.bio else "Yoxdur"
+        user_info += f"📝 **Bio**: {user_bio}\n"
+
+        await message.reply(user_info)
+    except Exception as e:
+        await message.reply(f"Xəta: {str(e)}")
+
+
+@rzayev.on_message(filters.command("ginfo", prefixes=["/", ".", "!", "%", "#", ",", "@"]))
+async def ginfo(client, message):
+    try:
+        chat = await rzayev.get_chat(message.chat.id)
+        members = await rzayev.get_chat_members(message.chat.id)
+        total_members = len([member for member in members if not member.user.is_bot and not member.user.is_deleted])
+        admins = [member for member in members if member.status in [ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER]]
+        admin_count = len(admins)
+
+        # Qrup haqqında məlumat
+        group_info = f"**Qrup Məlumatı - {chat.title}**\n"
+        group_info += f"📅 **Yaradılma tarixi**: {datetime.utcfromtimestamp(chat.date).strftime('%Y-%m-%d %H:%M:%S')}\n"
+        group_info += f"👥 **Üzvlərin sayı**: {total_members}\n"
+        group_info += f"👮🏻 **Adminlər**: {admin_count}\n"
+
+        # Qrup bio-su
+        group_bio = chat.description if chat.description else "Yoxdur"
+        group_info += f"📝 **Qrup Bio**: {group_bio}\n"
+
+        # Adminlərin siyahısı
+        admin_list = "\n".join([f"@{admin.user.username}" if admin.user.username else admin.user.mention for admin in admins])
+        group_info += f"👑 **Sahib**: @{admins[0].user.username if admins else 'Gizli'}\n"
+        group_info += f"👮🏻 **Adminlər**:\n{admin_list if admin_list else 'Yoxdur'}"
+
+        await message.reply(group_info)
+    except Exception as e:
+        await message.reply(f"Xəta: {str(e)}")
+
+
+# Qrupdan çıxan istifadəçini bildirmək
+@rzayev.on_chat_member_updated()
+async def member_left(client, update):
+    if update.new_chat_member.status == ChatMemberStatus.LEFT:
+        user = update.new_chat_member.user
+        message = f"❌ **{user.first_name}** qrupdan çıxdı! 😢"
+        await client.send_message(update.chat.id, message)
+
+# Qrupa daxil olan istifadəçini qarşılamaq (Hayacanlı qarşılama mesajı)
+@rzayev.on_chat_member_updated()
+async def member_joined(client, update):
+    if update.new_chat_member.status == ChatMemberStatus.MEMBER:
+        user = update.new_chat_member.user
+        
+        # Hal-hazırki vaxtı əldə edirik
+        current_hour = datetime.now().hour
+
+        # Səhər, günorta, axşam mesajları
+        if 5 <= current_hour < 12:
+            time_of_day = "🌅 Səhər"
+            welcome_message = f"🌞 **{user.first_name}** qrupumuza xoş gəldiniz! Bugün sizin üçün möhtəşəm bir gün olacaq! 🌟"
+        elif 12 <= current_hour < 18:
+            time_of_day = "🌞 Günorta"
+            welcome_message = f"🌞 **{user.first_name}** qrupumuza xoş gəldiniz! Gününüzün qalan hissəsi çox əyləncəli olacaq! 🎉"
+        else:
+            time_of_day = "🌙 Axşam"
+            welcome_message = f"🌙 **{user.first_name}** qrupumuza xoş gəldiniz! Gecəniz daha da parlaq olacaq! ✨"
+
+        # 1-ci mesaj - Xoş gəldin mesajı
+        welcome_message += f"\n{time_of_day} vaxtı qrupumuza qoşulmaq çox gözəl! 🎉\n"
+        welcome_message += "🚀 **YENİ ÜZV** qrupumuza gəldi! Hər şey yenidən başlayır! 💥\n"
+        welcome_message += "🔥 **Gəlin, bu qrupda birlikdə əylənək və yeni dostlar qazanaq!** 🔥"
+
+        # 2-ci mesaj - Qrup haqqında mesaj
+        group_message = "🔹 Qrup qaydalarına riayət etməyi unutmayın!\n"
+        group_message += "📚 Qrupda yeni məlumatlar, əyləncəli məzmun və dostluq gözləyir!"
+
+        # 3-cü mesaj - Aktivlik təşviqi
+        activity_message = "💬 Bura gələn hər kəs üçün mükəmməl bir yer! İstədiyiniz zaman yazın, əylənin və paylaşın!"
+
+        # 4-cü mesaj - Xüsusi təbrik (Yeni üzvə motivasiya)
+        special_message = "🎯 **Unutmayın, bu qrupda hər biriniz özünüzü evdə hiss edəcəksiniz!**\n"
+        special_message += "💡 **Qrupda hər şey sizlər üçün!** Hər kəsin fikri qiymətlidir!"
+
+        # Inline düymələr
+        keyboard = [
+            [InlineKeyboardButton("Qrup Haqqında", callback_data='group_info')],
+            [InlineKeyboardButton("Əlaqə", callback_data='contact')]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+
+        # Qrupun bio məlumatı
+        group_bio = await client.get_chat(update.chat.id)
+        bio_message = f"📋 **Qrup Bio**: {group_bio.bio}" if group_bio.bio else "📋 **Qrup Bio**: Təəssüf ki, qrup bio məlumatı mövcud deyil."
+
+        # 5-ci mesaj - Qrupun avatarı
+        group_avatar = await client.get_chat_photo(update.chat.id)
+        avatar_message = "📸 Qrupun avatarı:\n" + (f"![Avatar]({group_avatar.file_id})" if group_avatar else "Qrupun avatarı yoxdur.")
+
+        # Mesajları ardıcıl göndəririk
+        await client.send_message(update.chat.id, welcome_message)
+        await client.send_message(update.chat.id, group_message)
+        await client.send_message(update.chat.id, activity_message)
+        await client.send_message(update.chat.id, special_message)
+        await client.send_message(update.chat.id, bio_message)
+        await client.send_message(update.chat.id, avatar_message, reply_markup=reply_markup)
+
+
 
 @rzayev.on_message(filters.command(["ping"], prefixes=["/", "!", "%", ",", ".", "@", "#"]))
 async def ping_pong(client, message):
