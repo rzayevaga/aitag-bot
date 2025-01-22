@@ -11,17 +11,87 @@ from pyrogram.enums import ChatMemberStatus, ChatType
 from pyrogram.errors import FloodWait
 from bp import beautiful_phrases
 from sd import sual_db
+import json
+
 
 
 rzayev=Client(
     "AiTagBot",
     api_id = "18052289",
     api_hash = "552525f45a3066fee54ca7852235c19c",
-    bot_token = ""
+    bot_token = "7587228069:AAGKMjCIYjQ3gqvhwc4wrw1ZAuOGnq7U__I"
 )
 
 chatQueue = []
 stopProcess = False
+
+
+
+# Məlumatları saxlayacağımız JSON faylı
+data_file = "data.json"
+
+# JSON faylını oxumaq və ya yaratmaq üçün funksiya
+def load_data():
+    try:
+        with open(data_file, "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+
+# JSON faylını yeniləmək üçün funksiya
+def save_data(data):
+    with open(data_file, "w") as f:
+        json.dump(data, f, indent=4)
+
+# Yeni mesaj alındıqda məlumatları yeniləyən funksiya
+@app.on_message(filters.text)
+def handle_message(client, message):
+    chat_id = message.chat.id
+    data = load_data()
+
+    if str(chat_id) not in data:
+        data[str(chat_id)] = {"messages": 0, "users": {}}
+
+    # Mesaj sayını artırırıq
+    data[str(chat_id)]["messages"] += 1
+
+    # İstifadəçinin mesaj göndərdiyini qeyd edirik
+    user_id = message.from_user.id
+    if user_id not in data[str(chat_id)]["users"]:
+        data[str(chat_id)]["users"][user_id] = 0
+
+    data[str(chat_id)]["users"][user_id] += 1
+
+    save_data(data)
+
+# /stat əmri üçün funksiya
+@app.on_message(filters.command("stat"))
+def show_stats(client, message):
+    chat_id = message.chat.id
+    data = load_data()
+
+    if str(chat_id) not in data:
+        message.reply("Bu qrup üçün heç bir statistik məlumat yoxdur.")
+        return
+
+    group_data = data[str(chat_id)]
+    total_messages = group_data["messages"]
+    user_stats = group_data["users"]
+
+    # Ən çox mesaj göndərən istifadəçini tapmaq
+    top_user_id = max(user_stats, key=user_stats.get)
+    top_user_messages = user_stats[top_user_id]
+    
+    # Ən çox mesaj göndərənin məlumatını almaq
+    top_user = client.get_users(top_user_id)
+    top_user_name = top_user.first_name if top_user.first_name else "Bilinməyən İstifadəçi"
+
+    # Statistik məlumatları göndəririk
+    message.reply(
+        f"Qrupun ümumi mesaj sayı: {total_messages}\n"
+        f"Ən çox mesaj göndərən istifadəçi: {top_user_name} ({top_user_id}) - {top_user_messages} mesaj"
+    )
+    
 
 
  
