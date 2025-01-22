@@ -44,7 +44,7 @@ def save_data(data):
         json.dump(data, f, indent=4)
 
 # Yeni mesaj alındıqda məlumatları yeniləyən funksiya
-@app.on_message(filters.text)
+@rzayev.on_message(filters.text)
 def handle_message(client, message):
     chat_id = message.chat.id
     data = load_data()
@@ -65,7 +65,7 @@ def handle_message(client, message):
     save_data(data)
 
 # /stat əmri üçün funksiya
-@app.on_message(filters.command("stat"))
+@rzayev.on_message(filters.command("stat"))
 def show_stats(client, message):
     chat_id = message.chat.id
     data = load_data()
