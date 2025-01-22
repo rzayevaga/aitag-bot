@@ -33,7 +33,7 @@ async def start(client, message):
         [InlineKeyboardButton("🧸 Söhbərt Qrupu", url="https://t.me/")]
     ])
     await message.reply_photo(
-        photo="",
+        photo="https://vault.pictures/p/d735479754644f598dd16dec138345a4",
         caption=f"Salam {message.from_user.first_name}!\nMən Nəfəs Tağ Botuyam. Qrup söhbətlərində sizin yerinzə istifadəçiləri tağ edə ( çağıra ) bilərəm. Başqa funksiyalarımda var.",
         reply_markup=buttons
     )
@@ -46,7 +46,8 @@ async def commands_menu(client, callback_query):
     ])
     await callback_query.message.edit_text(
         "**📚 Əmrlər:**\n\n"
-        "`/stag` - Motivasiya, şeir, qəzəl sözləri ilə tağ.\n"
+        "`/stag` - Motivasiya, şeir, qəzəl, mahnı sözləri ilə tağ.\n"	    "`/ttag [mesaj]` - Təkli tağ sistemi.\n"
+        "`/tag` - Sual verərək tağ edir.\n"
         "`/ttag [mesaj]` - Təkli tağ sistemi.\n"
         "`/stop` - Bütün prosesləri dayandır.\n"
         "`/admins` - Adminlərin siyahısı.\n"
