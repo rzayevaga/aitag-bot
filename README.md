@@ -8,4 +8,4 @@
 
 
 
-    git clone https://github.com/rzayevaga/racore-m && cd racore-m && bash setup.sh
+    git clone https://github.com/rzayevaga/racore-m && cd racore-m && bash s.sh
