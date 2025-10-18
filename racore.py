@@ -10,9 +10,9 @@ import random
 from pyrogram.enums import ChatMemberStatus, ChatType
 from pyrogram.errors import FloodWait
 from bp import beautiful_phrases
-from sd import sual_db
+from sd import sual_dp
 import json
-
+import config
 # ═══════════════════════════════════════════════════════════════
 # 🔥 RACORE PREMIUM ULTIMATE TAGGER BOT V2.0 🔥
 # 👨‍💻 Author: Rzayeff Ağa
