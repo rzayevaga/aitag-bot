@@ -23,10 +23,12 @@ import json
 
 racore = Client(
     "RacorePremiumBot",
-    api_id="18052289",
-    api_hash="552525f45a3066fee54ca7852235c19c",
-    bot_token="7587228069:AAGKMjCIYjQ3gqvhwc4wrw1ZAuOGnq7U__I"
+    api_id = config.API_ID,
+    api_hash = config.API_HASH,
+    bot_token = config.BOT_TOKEN
 )
+
+
 
 # Global dəyişənlər
 chatQueue = []
